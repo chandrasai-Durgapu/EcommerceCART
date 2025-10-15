@@ -76,10 +76,10 @@ MIT License
 
 ## Contact
 
-Developed by [Your Name / GitHub Username].
+Developed by [Chandra Sai].
 
 For questions or issues, please open a GitHub issue.
 
 ---
- dataset link is present in google drive of chandrasekharcse522@gmail.com (because the dataset consists of million rows and which is larger files)
----
+  dataset link is present in google drive of chandrasekharcse522@gmail.com (because the dataset consists of million rows and which is larger files)
+
