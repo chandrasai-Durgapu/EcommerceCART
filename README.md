@@ -21,6 +21,12 @@ EcommerceCART models the core entities and relationships of an e-commerce ecosys
 > ⚠️ **This database is designed to handle datasets with millions of rows, making it ideal for scalability testing, complex querying, and real-world performance scenarios.**
 
 ---
+## 📊 Database Diagram
+
+Below is the Entity‑Relationship (ER) diagram that visualizes the schema, relationships, and key entities in the database:
+
+![EcommerceCART Database Diagram](EcommerceCART-Database-Diagram.png)
+---
 
 ## Features
 
