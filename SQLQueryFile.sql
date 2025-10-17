@@ -1,5 +1,191 @@
 
+--list all products
+select * from products
 
+
+--list of all categories
+select * from categories
+
+--list all inventory 
+select * from inventory
+
+--list all order_items
+select * from order_items
+
+--list all orders
+select * from orders
+
+--list all payments information
+select * from payments
+
+--list all sellers information
+select * from sellers
+
+--list all shipping information
+select * from shipping
+
+/** categories table**/
+select category_id, category_name from categories
+
+--first top 20 values from categories table
+select top 20 category_id, category_name from categories
+
+--display max value from category_name
+select max(category_name) from categories
+
+--display minimum value from category_name
+select min(category_name) from categories
+
+--display catgory_name column with category_id === 1
+select category_name from categories where category_id =1
+
+--display category_name from categories table where category_id greater than 1
+select category_name from categories where category_id > 1
+
+--display length of category_name
+select len(category_name) from categories
+
+--display category_name from categories table where category_id (between 1 and 10)
+select category_name from categories where category_id between 1 and 10
+
+--sort categories by category_name column alphabetically
+select * from categories order by category_name asc
+
+--sort categories by category_name descending order
+select * from categories order by category_name desc
+
+--sort categories by category_id in ascending order
+select * from categories order by category_id asc
+
+--sort categories by category_id column descending order
+select * from categories order by category_id desc
+
+--display categories table where category_name column it has pattern starts with 'a' 
+select * from categories where category_name like 'a%'
+
+--display total count of categories table
+select count(*) as total_count from categories 
+
+--display categories table where length() function of category_name column has greater than 10
+select * from categories where len(category_name) > 10
+
+--display maximum length of category_name column from categories table
+select max(len(category_name)) as max_length from categories
+
+select len(min(category_name)) from categories
+
+select * from categories where len(category_name) > (select len(min(category_name)) from categories)
+
+--select remaining category_name from total_categories_count and minimum length() of category_name from the categories table
+select count(*) as total_categories_count from categories
+select min(len(category_name)) as minimum_length from categories
+
+select count(*) -  min(len(category_name))  as remaining from categories
+
+
+
+
+--display the length of Mobiles
+select len('Mobiles') 
+
+--select left() of Mobiles
+select left('Mobiles', 3)
+
+--select right() from Mobiles
+select right('Mobiles',3)
+
+--select substring 
+select substring('Mobiles', 2,6)
+
+--replace function
+select replace('Mobiles','l','ccc')
+
+--convert Mobiles to uppercase
+select upper('Mobiles')
+
+--convert Mobiles to lowercase
+select lower('Mobiles')
+
+--apply left trim on '  Mobiles'
+select ltrim('  Mobiles')
+
+--apply right trim on 'Mobiles   a'
+select rtrim('Mobiles  a      ')
+
+--remove space 
+select trim('   Mobiles_a    ')
+
+--concat 'Mobiles' with 12345
+select concat('Mobiles', 12345)
+
+--reverse Mobiles
+select reverse('Mobiles')
+
+--find the length() of category_name with add it with 3 and display it as new_column_length from the categories table
+select len(category_name) as length from categories
+select len(category_name) as length, cast (len(category_name) + 3 as int) as new_column_length from categories 
+
+--use case to label tablet devcies and mobile devices on categories table
+select category_name,
+	case when category_name like 'Tabl%' then 'Tablet Devices'
+		 when category_name like 'Mob%' then 'Mobile Devices'
+		 else 'other'
+		 end as category_type from categories
+
+
+
+
+/** customers table**/
+
+--list all customers table
+select * from customers
+
+--display max customer_id
+select max(customer_id) from customers
+
+--display minimum of customer_id
+select min(customer_id) from customers
+
+--concat first-name and last_name from customers table
+select concat(first_name,last_name) as full_name from customers
+
+--concat first_name and last_name without using concat() function
+select first_name + '' + last_name as full_name from customers
+
+--substring of address
+select substring('"6182 Gregory Stream',2,6)
+
+--substring on column
+select substring(address,2,8) from customers
+
+--select substring() function from first index===2 to last_index===using length() function of the '6182 Gregory Stream'
+select substring('6182 Gregory Stream',2,len('6182 Gregory Stream')) as sub_part
+
+--select substring() function on the address coulmn with first_index as 2 and last_index is the length() function of the address coulmn  in the customers table
+select substring(address,2,len(address)) as sub_part from customers
+
+--replace the address column with implement substring() of the first_index as 2 and last_index as 6  and finally apply as '@gmail.com' to it
+
+select replace(address, substring(address,2,6), '@gmail.com') from customers
+
+
+select c.category_name , count(p.product_id) as product_count from categories as c 
+join products as p 
+on p.category_id=c.category_id
+group by c.category_name
+
+
+select c.category_name, 
+	count(p.product_id) as product_count, 
+	rank() over(order by count(p.product_id) desc) as highest_rank
+	from categories as c 
+	join products as p 
+	on p.category_id=c.category_id
+	group by c.category_name
+
+--------------------------------
+/**** Advanced sql queries***/
+--------------------------------
 /**--1. top selling products 
 --query top 10 products by total sales value
 
@@ -145,7 +331,7 @@ join products as p on p.product_id=i.product_id
 where stock_remaining < 10
 
 
-/** Shipping delays 
+/**9. Shipping delays 
 Identify orders where the shipping date is later than 7 days or 5 days after the order date
 
 --include customer, order details and delivery provider
@@ -168,18 +354,30 @@ JOIN shipping AS s ON o.order_id = s.order_id
 WHERE DATEDIFF(DAY, o.order_date, s.shipping_date) > 5 OR DATEDIFF(DAY, o.order_date, s.shipping_date) > 7
 
 
-/** Payment success rate 
+/**10. Payment success rate 
 --calculate the percentage of successful payments across all orders
 
 --include breakdowns by payment status(eg:-- failed pending)
 **/
 
-select p.payment_status,
-count(*) as total_count ,
-count(*)/(select count(*) from payments) * 100 as ratio
-from orders as o join payments as p 
-on p.order_id=o.order_id
-group by p.payment_status
+SELECT 
+    p.payment_status,
+    COUNT(*) AS total_count,
+    CAST(COUNT(*) AS FLOAT) / (SELECT COUNT(*) FROM payments) * 100 AS ratio
+FROM orders AS o
+JOIN payments AS p ON p.order_id = o.order_id
+GROUP BY p.payment_status;
 
 
 
+/** 11. Top performing sellers
+-- find the top 5 sellers based on total sales values.
+
+--include both failed orders and successful orders and display the percentage of successful orders
+**/
+
+select * from orders as o 
+join sellers as s
+on s.seller_id=o.seller_id
+join order_items as oi
+on oi.order_id=o.order_id
