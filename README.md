@@ -1,7 +1,8 @@
-# 📦 EcommerceCART – Scalable E-Commerce SQL Server Database
+# 📦 EcommerceCART – Scalable E-Commerce Database using SQL SERVER
 
 A high-performance, production-scale **relational database design for an e-commerce platform**, built on **Microsoft SQL Server**. This project demonstrates strong command of **data modeling**, **query optimization**, and **advanced SQL analytics** over a dataset containing **1+ million rows**.
 
+This project covers From basic sql queries to Advanced sql queries
 > 💼 Ideal for showcasing backend data engineering skills to employers and recruiters.
 
 ---
@@ -64,6 +65,7 @@ The following ER diagram illustrates the core structure and table relationships:
 |---------------------------|--------------------------------------------------|
 | `database-schema.sql`     | Complete database schema creation script         |
 | `SQLQueryFile.sql`        | Advanced SQL queries and data analysis examples  |
+| `Inventory.sql`           | Inventory table sql queries                      | 
 | `EcommerceCART-Database-Diagram.png` | Entity-Relationship diagram of the database |
 
 ---
@@ -85,7 +87,8 @@ Alternatively, you can load your own sample data using tools like [Mockaroo](htt
 2. Create a new database called `EcommerceCART`
 3. Run `database-schema.sql` to generate tables
 4. Import sample or full dataset
-5. Use `SQLQueryFile.sql` to explore the data
+5. Import Inventory table related sql queries
+6. Use `SQLQueryFile.sql` to explore the data
 
 ---
 
