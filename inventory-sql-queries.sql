@@ -117,3 +117,42 @@ SELECT DATEDIFF(day, '2025-01-01', '2025-10-18') AS DaysDifference
 SELECT DATEDIFF(month, '2024-10-01', '2025-10-01') AS MonthsDifference;
 -- Output: 12
 
+
+--apply datediff() function on restock_date column from new 1 year
+select DATEDIFF(year,restock_date,DATEADD(year,1,restock_date)) as new_year from inventory
+
+--restock_date inventory on saturday and sunday
+SELECT 
+    inventory_id,
+    product_id,
+    restock_date,
+    DATENAME(weekday, restock_date) AS restock_day
+FROM inventory
+WHERE DATENAME(weekday, restock_date) IN ('Saturday', 'Sunday')
+
+
+--Find Items With Low Stock and Older Than 90 Days
+SELECT 
+    inventory_id,
+    product_id,
+    stock_remaining,
+    restock_date,
+    DATEDIFF(day, restock_date, SYSDATETIME()) AS days_in_stock
+FROM inventory
+WHERE 
+    stock_remaining < 10
+    AND DATEDIFF(day, restock_date, SYSDATETIME()) > 90;
+
+
+--Rank Products by Freshness (Least Days in Stock)
+SELECT 
+    inventory_id,
+    product_id,
+    stock_remaining,
+    restock_date,
+    DATEDIFF(day, restock_date, SYSDATETIME()) AS days_in_stock
+FROM inventory
+ORDER BY days_in_stock ASC;
+
+
+
