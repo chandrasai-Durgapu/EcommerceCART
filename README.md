@@ -58,15 +58,25 @@ The following ER diagram illustrates the core structure and table relationships:
 - Can serve as a backend schema for a fully functional e-commerce web or mobile app
 
 ---
+## Advanced SQL Features Implemented
+
+- ✅ Inline and multi-statement Table-Valued Functions  
+- ✅ Scalar Functions for category/product lookups  
+- ✅ Recursive and analytical CTEs  
+- ✅ Subqueries and window functions (RANK, LAG, etc.)  
+- ✅ Views for inventory and category-level reporting  
+---
 
 ## 📂 Project Files
 
-| File                      | Description                                      |
-|---------------------------|--------------------------------------------------|
-| `database-schema.sql`     | Complete database schema creation script         |
-| `SQLQueryFile.sql`        | Advanced SQL queries and data analysis examples  |
-| `Inventory.sql`           | Inventory table sql queries                      | 
-| `EcommerceCART-Database-Diagram.png` | Entity-Relationship diagram of the database |
+| File                               | Description |
+|------------------------------------|-------------|
+| `database-schema.sql`              | Full database schema creation script with all tables, keys, and constraints |
+| `Inventory.sql`                    | Read-only inventory analytics using CTEs, window functions, and CASE logic |
+| `categories-sql-queries.sql`       | Queries focused on the categories table — includes views, functions, and CTEs |
+| `Advanced-SQL-Queries.sql`         | Complex SQL logic using window functions, subqueries, and dynamic ranking |
+| `EcommerceCART-Database-Diagram.png` | Visual ER diagram showing relationships between database tables |
+
 
 ---
 
