@@ -155,4 +155,72 @@ FROM inventory
 ORDER BY days_in_stock ASC;
 
 
+--Create a View for Clean Inventory Access
+create view InventoryWithProducts as
+SELECT 
+    i.product_id,
+    p.product_name,
+	p.price,
+    i.restock_date,
+    i.stock_remaining
+FROM Inventory i
+JOIN Products p ON i.product_id = p.product_id
+
+
+
+--cte with Inventory Status
+with StockClassification as(
+select i.product_id,
+	   i.stock_remaining,
+	case when i.stock_remaining = 0 then 'Quantity Sold'
+		when i.stock_remaining < 10 then 'Low Stock'
+		else 'In Stock'
+		end as StockStatus
+		from inventory as i
+)
+select StockStatus from StockClassification
+
+
+--Top 5 Most Stocked Items with Row_number() Window Function and SubQuery
+SELECT * 
+FROM (
+    SELECT  
+        product_id,
+        stock_remaining,
+        ROW_NUMBER() OVER (ORDER BY stock_remaining DESC) AS StockRank
+    FROM Inventory
+) e
+WHERE e.StockRank <= 5;
+
+
+
+--Create a Scalar User Defined Function for Stock Status where stock status is less than 10 and stock status is zero
+
+CREATE FUNCTION fn_GetStockStatus (@product_id INT)
+RETURNS VARCHAR(20)
+AS
+BEGIN
+    DECLARE @status VARCHAR(20)
+    SELECT @status = 
+        CASE 
+            WHEN stock_remaining = 0 THEN 'Out of Stock'
+            WHEN stock_remaining < 10 THEN 'Low Stock'
+            ELSE 'In Stock'
+        END
+    FROM Inventory
+    WHERE product_id = @product_id
+    RETURN @status
+END;
+
+
+SELECT dbo.fn_GetStockStatus(1) AS StockStatus;
+
+
+--calculate Running Total
+SELECT 
+    product_id,
+    stock_remaining,
+    SUM(stock_remaining) OVER (ORDER BY product_id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS RunningTotal
+FROM Inventory
+
 
