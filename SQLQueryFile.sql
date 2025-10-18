@@ -6,8 +6,7 @@ select * from products
 --list of all categories
 select * from categories
 
---list all inventory 
-select * from inventory
+
 
 --list all order_items
 select * from order_items
@@ -24,7 +23,9 @@ select * from sellers
 --list all shipping information
 select * from shipping
 
+-------------------------------
 /** categories table**/
+-------------------------------
 select category_id, category_name from categories
 
 --first top 20 values from categories table
@@ -76,11 +77,7 @@ select len(min(category_name)) from categories
 
 select * from categories where len(category_name) > (select len(min(category_name)) from categories)
 
---select remaining category_name from total_categories_count and minimum length() of category_name from the categories table
-select count(*) as total_categories_count from categories
-select min(len(category_name)) as minimum_length from categories
 
-select count(*) -  min(len(category_name))  as remaining from categories
 
 
 
@@ -134,9 +131,9 @@ select category_name,
 
 
 
-
+-------------------------
 /** customers table**/
-
+-------------------------
 --list all customers table
 select * from customers
 
@@ -183,9 +180,11 @@ select c.category_name,
 	on p.category_id=c.category_id
 	group by c.category_name
 
+
 --------------------------------
 /**** Advanced sql queries***/
 --------------------------------
+
 /**--1. top selling products 
 --query top 10 products by total sales value
 
@@ -381,3 +380,43 @@ join sellers as s
 on s.seller_id=o.seller_id
 join order_items as oi
 on oi.order_id=o.order_id
+
+--Top 3 Categories by Total Inventory
+SELECT 
+    c.category_id,
+    c.category_name,
+    SUM(i.stock_remaining) AS TotalStock
+FROM categories c
+JOIN products p ON c.category_id = p.category_id
+JOIN inventory i ON p.product_id = i.product_id
+GROUP BY c.category_id, c.category_name
+ORDER BY TotalStock DESC
+OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY;  -- Top 3 categories
+
+
+CREATE FUNCTION dbo.fn_InventoryStatusByCategory (@category_id INT)
+RETURNS TABLE
+AS
+RETURN (
+    SELECT 
+        p.product_id,
+        p.product_name,
+        i.stock_remaining,
+        CASE 
+            WHEN i.stock_remaining = 0 THEN 'Out of Stock'
+            WHEN i.stock_remaining < 10 THEN 'Low Stock'
+            ELSE 'In Stock'
+        END AS StockStatus
+    FROM Products p
+    JOIN Inventory i ON p.product_id = i.product_id
+    WHERE p.category_id = @category_id
+);
+
+
+--select * from inventory i join products p on i.product_id=p.product_id where p.category_id=1
+
+
+
+select * from [dbo].[fn_InventoryStatusByCategory](1)
+
+

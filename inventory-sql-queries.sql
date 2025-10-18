@@ -224,3 +224,30 @@ SELECT
 FROM Inventory
 
 
+--Advanced CTE: Products with Stock Trend
+WITH StockDiff AS (
+    SELECT 
+        product_id,
+        stock_remaining,
+        restock_date,
+        LAG(stock_remaining) OVER (PARTITION BY product_id ORDER BY restock_date) AS PreviousStock
+    FROM inventory
+),
+
+StockTrend AS (
+    SELECT 
+        product_id,
+        restock_date,
+        stock_remaining,
+        PreviousStock,
+        CASE 
+            WHEN stock_remaining > PreviousStock THEN 'Restocked'
+            WHEN stock_remaining < PreviousStock THEN 'Stock Decreased'
+            WHEN stock_remaining = PreviousStock THEN 'No Change'
+            ELSE 'First Record'  -- NULL PreviousStock
+        END AS StockTrend
+    FROM StockDiff
+)
+SELECT * FROM StockTrend;
+
+
