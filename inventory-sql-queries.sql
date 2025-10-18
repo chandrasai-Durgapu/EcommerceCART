@@ -11,6 +11,13 @@ select count(inventory_id) as total_count from inventory
 --display top 50 rows of inventory table
 select top 50 * from inventory
 
+--display sum of stock_remaining in inventory table
+--select product_id,stock_remaining,sum(stock_remaining) as total_sum from inventory 
+--group by product_id, stock_remaining
+
+--range of stock_reamining 
+select max(stock_remaining)-min(stock_remaining) as range_stock_remaining from inventory
+
 --display max stock_remaining as highest
 select max(stock_remaining) as highest from inventory
 
