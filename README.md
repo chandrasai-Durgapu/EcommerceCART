@@ -2,7 +2,7 @@
 
 A high-performance, production-scale **relational database design for an e-commerce platform**, built on **Microsoft SQL Server**. This project demonstrates strong command of **data modeling**, **query optimization**, and **advanced SQL analytics** over a dataset containing **1+ million rows**.
 
-This project covers From basic sql queries to Advanced sql queries
+This project covers From basic sql server queries to Advanced sql server queries
 > 💼 Ideal for showcasing backend data engineering skills to employers and recruiters.
 
 ---
@@ -10,9 +10,9 @@ This project covers From basic sql queries to Advanced sql queries
 ## 🧩 Project Overview
 
 The **EcommerceCART** database simulates a full-fledged e-commerce ecosystem with entities like:
-- Customers, Products, Orders
+- Customers, Products, Orders, Order Items
 - Cart Management
-- Shipping, Payments, and Reviews
+- Shipping, Payments, and Reviews etc...
 
 It’s designed to **handle large volumes of data** efficiently and includes **business-critical queries** used in real-world applications such as:
 - Revenue tracking
@@ -76,6 +76,7 @@ The following ER diagram illustrates the core structure and table relationships:
 | `categories-sql-queries.sql`       | Queries focused on the categories table — includes views, functions, and CTEs |
 | `order-items-sql-queries`          | Queries focused on order_items table  |
 | `orders-sql-queries`                | Queries focused on orders table    |
+| `payments-sql-queries`              | Queries focused on payments table |
 | `Advanced-SQL-Queries.sql`         | Complex SQL logic using window functions, subqueries, and dynamic ranking |
 | `EcommerceCART-Database-Diagram.png` | Visual ER diagram showing relationships between database tables |
 
