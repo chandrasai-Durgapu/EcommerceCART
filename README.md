@@ -75,7 +75,7 @@ The following ER diagram illustrates the core structure and table relationships:
 | `Inventory.sql`                    | Read-only inventory analytics using CTEs, window functions, and CASE logic |
 | `categories-sql-queries.sql`       | Queries focused on the categories table — includes views, functions, and CTEs |
 | `order-items-sql-queries`          | Queries focused on order_items table  |
-| `oders-sql-queries`                | Queries focused on orders table    |
+| `orders-sql-queries`                | Queries focused on orders table    |
 | `Advanced-SQL-Queries.sql`         | Complex SQL logic using window functions, subqueries, and dynamic ranking |
 | `EcommerceCART-Database-Diagram.png` | Visual ER diagram showing relationships between database tables |
 
