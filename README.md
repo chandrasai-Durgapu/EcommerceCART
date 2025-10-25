@@ -77,6 +77,9 @@ The following ER diagram illustrates the core structure and table relationships:
 | `order-items-sql-queries`          | Queries focused on order_items table  |
 | `orders-sql-queries`                | Queries focused on orders table    |
 | `payments-sql-queries`              | Queries focused on payments table |
+| `products-sql-queries`              | Queries focused on products table |
+| `sellers-sql-queries`               | Queries focused on sellers table |
+| `shipping-sql-queries`              | Queries focused on shipping table  |
 | `Advanced-SQL-Queries.sql`         | Complex SQL logic using window functions, subqueries, and dynamic ranking |
 | `EcommerceCART-Database-Diagram.png` | Visual ER diagram showing relationships between database tables |
 
