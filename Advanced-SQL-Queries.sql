@@ -4,26 +4,116 @@ USE EcommerceCart;
 GO
 
 
---list all products
-select * from products
+--Orders with Payment Details
+SELECT 
+    o.order_id,
+    o.order_date,
+    p.payment_status,
+    p.payment_date,
+    o.customer_id
+FROM orders o
+INNER JOIN payments p ON o.order_id = p.order_id;
 
 
---list of all categories
-select * from categories
+--Customers and their Last Order
+SELECT 
+    c.customer_id,
+    c.first_name + ' ' + c.last_name AS customer_name,
+    MAX(o.order_date) AS last_order_date
+FROM customers c
+LEFT JOIN orders o ON c.customer_id = o.customer_id
+GROUP BY c.customer_id, c.first_name, c.last_name;
+
+--Products never ordered
+SELECT 
+    p.product_id,
+    p.product_name
+FROM products p
+LEFT JOIN order_items oi ON p.product_id = oi.product_id
+WHERE oi.order_id IS NULL;
+
+
+--Highest paying customer
+SELECT customer_id, first_name + ' ' + last_name AS full_name
+FROM customers
+WHERE customer_id = (
+    SELECT TOP 1 o.customer_id
+    FROM orders o
+    JOIN order_items oi ON o.order_id = oi.order_id
+    GROUP BY o.customer_id
+    ORDER BY SUM(oi.total_price) DESC
+);
+
+
+--Products More Expensive Than Category Average
+SELECT product_id, product_name, price
+FROM products p
+WHERE price > (
+    SELECT AVG(price)
+    FROM products
+    WHERE category_id = p.category_id
+);
+
+
+--Customer Order Count Ranking
+WITH CustomerOrders AS (
+    SELECT 
+        customer_id,
+        COUNT(order_id) AS total_orders
+    FROM orders
+    GROUP BY customer_id
+)
+SELECT *, RANK() OVER (ORDER BY total_orders DESC) AS order_rank
+FROM CustomerOrders;
+
+
+--
+
+WITH DeliveryDates AS ( SELECT CAST(GETDATE() AS DATE) AS delivery_date 
+UNION ALL SELECT DATEADD(DAY, 1, delivery_date) FROM DeliveryDates 
+WHERE delivery_date < DATEADD(DAY, 9, GETDATE()) ) 
+
+SELECT * FROM DeliveryDates;
+
+
+--Customer Cumulative Spending
+SELECT 
+    c.customer_id,
+    c.first_name + ' ' + c.last_name AS customer_name,
+    SUM(oi.total_price) OVER(PARTITION BY c.customer_id ORDER BY o.order_date) AS cumulative_spent
+FROM customers c
+JOIN orders o ON c.customer_id = o.customer_id
+JOIN order_items oi ON o.order_id = oi.order_id;
+
+
+--Orders with Previous and Next Order Dates
+SELECT *
+FROM (
+    SELECT 
+        customer_id,
+        order_id,
+        order_date,
+        LAG(order_date) OVER(PARTITION BY customer_id ORDER BY order_date) AS previous_order,
+        LEAD(order_date) OVER(PARTITION BY customer_id ORDER BY order_date) AS next_order
+    FROM orders
+) AS o
+WHERE previous_order IS NOT NULL
+  AND next_order IS NOT NULL;
+
+
+--
 
 
 
 
 
 
---list all payments information
-select * from payments
 
---list all sellers information
-select * from sellers
 
---list all shipping information
-select * from shipping
+
+
+
+
 
 SELECT p.product_name, c.category_name
 FROM products p
