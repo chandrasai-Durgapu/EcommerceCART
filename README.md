@@ -72,14 +72,15 @@ The following ER diagram illustrates the core structure and table relationships:
 | File                               | Description |
 |------------------------------------|-------------|
 | `database-schema.sql`              | Full database schema creation script with all tables, keys, and constraints |
-| `Inventory.sql`                    | Read-only inventory analytics using CTEs, window functions, and CASE logic |
+| `inventory-sql-queries.sql`        | Read-only inventory analytics using CTEs, window functions, and CASE logic |
+| `customers-sql-queries.sql`            | Queries focused on customers table |
 | `categories-sql-queries.sql`       | Queries focused on the categories table — includes views, functions, and CTEs |
-| `order-items-sql-queries`          | Queries focused on order_items table  |
-| `orders-sql-queries`                | Queries focused on orders table    |
-| `payments-sql-queries`              | Queries focused on payments table |
-| `products-sql-queries`              | Queries focused on products table |
-| `sellers-sql-queries`               | Queries focused on sellers table |
-| `shipping-sql-queries`              | Queries focused on shipping table  |
+| `order-items-sql-queries.sql`          | Queries focused on order_items table  |
+| `orders-sql-queries.sql`                | Queries focused on orders table    |
+| `payments-sql-queries.sql`              | Queries focused on payments table |
+| `products-sql-queries.sql`              | Queries focused on products table |
+| `sellers-sql-queries.sql`               | Queries focused on sellers table |
+| `shipping-sql-queries.sql`              | Queries focused on shipping table  |
 | `Advanced-SQL-Queries.sql`         | Complex SQL logic using window functions, subqueries, and dynamic ranking |
 | `EcommerceCART-Database-Diagram.png` | Visual ER diagram showing relationships between database tables |
 
