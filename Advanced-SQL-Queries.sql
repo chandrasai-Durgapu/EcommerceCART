@@ -1,10 +1,60 @@
-
+﻿/*******************************************************************************************
+    FILE: EcommerceCart_Practice_Set.sql
+    DATABASE: EcommerceCart
+    DESCRIPTION:
+        Full SQL Server Practice Collection — Basic, Medium, Advanced Queries
+        + Additional analytical and practical queries (joins, CTEs, window functions)
+*******************************************************************************************/
 
 USE EcommerceCart;
 GO
 
 
---Orders with Payment Details
+-- =========================================================================================
+--  BASIC LEVEL QUERIES (1–20)
+-- =========================================================================================
+
+-- 1️ List all customers with their state and country
+SELECT customer_id, first_name, last_name, state, country
+FROM customers;
+
+-- 2️ Find all sellers located in ‘California’
+SELECT seller_name, state, country
+FROM sellers
+WHERE state = 'California';
+
+-- 3️ Display all products and their categories
+SELECT p.product_name, c.category_name
+FROM products p
+JOIN categories c ON p.category_id = c.category_id;
+
+-- 4️ Show total number of customers by country
+SELECT country, COUNT(*) AS total_customers
+FROM customers
+GROUP BY country
+ORDER BY total_customers DESC;
+
+-- 5️ Find the highest-priced product
+SELECT TOP 1 product_name, price
+FROM products
+ORDER BY price DESC;
+
+-- 6️ Get all orders placed by a specific customer (example: ID = 10)
+SELECT order_id, order_date, order_status
+FROM orders
+WHERE customer_id = 10;
+
+-- 7️ Show all payments and their statuses
+SELECT payment_id, payment_mode, payment_status, payment_date
+FROM payments;
+
+-- 8️ Count how many orders each seller has fulfilled
+SELECT s.seller_name, COUNT(o.order_id) AS total_orders
+FROM sellers s
+JOIN orders o ON s.seller_id = o.seller_id
+GROUP BY s.seller_name;
+
+-- 9️ Orders with Payment Details
 SELECT 
     o.order_id,
     o.order_date,
@@ -14,8 +64,7 @@ SELECT
 FROM orders o
 INNER JOIN payments p ON o.order_id = p.order_id;
 
-
---Customers and their Last Order
+-- 🔟 Customers and their Last Order
 SELECT 
     c.customer_id,
     c.first_name + ' ' + c.last_name AS customer_name,
@@ -24,7 +73,7 @@ FROM customers c
 LEFT JOIN orders o ON c.customer_id = o.customer_id
 GROUP BY c.customer_id, c.first_name, c.last_name;
 
---Products never ordered
+-- 11️ Products never ordered
 SELECT 
     p.product_id,
     p.product_name
@@ -32,8 +81,7 @@ FROM products p
 LEFT JOIN order_items oi ON p.product_id = oi.product_id
 WHERE oi.order_id IS NULL;
 
-
---Highest paying customer
+-- 12️ Highest paying customer
 SELECT customer_id, first_name + ' ' + last_name AS full_name
 FROM customers
 WHERE customer_id = (
@@ -44,8 +92,7 @@ WHERE customer_id = (
     ORDER BY SUM(oi.total_price) DESC
 );
 
-
---Products More Expensive Than Category Average
+-- 13️ Products more expensive than their category’s average price
 SELECT product_id, product_name, price
 FROM products p
 WHERE price > (
@@ -54,39 +101,31 @@ WHERE price > (
     WHERE category_id = p.category_id
 );
 
+-- 14️ Count number of items in each order
+SELECT order_id, COUNT(order_item_id) AS item_count
+FROM order_items
+GROUP BY order_id;
 
---Customer Order Count Ranking
-WITH CustomerOrders AS (
-    SELECT 
-        customer_id,
-        COUNT(order_id) AS total_orders
-    FROM orders
-    GROUP BY customer_id
+-- 15️ Show all shipping records that are still in transit
+SELECT order_id, carrier, delivery_status
+FROM shipping
+WHERE delivery_status = 'In Transit';
+
+-- 16️ List all sellers and their business types
+SELECT seller_name, brand_type, business_type
+FROM sellers;
+
+-- 17️ Generate 10 sequential delivery dates using recursive CTE
+WITH DeliveryDates AS (
+    SELECT CAST(GETDATE() AS DATE) AS delivery_date
+    UNION ALL
+    SELECT DATEADD(DAY, 1, delivery_date)
+    FROM DeliveryDates
+    WHERE delivery_date < DATEADD(DAY, 9, GETDATE())
 )
-SELECT *, RANK() OVER (ORDER BY total_orders DESC) AS order_rank
-FROM CustomerOrders;
-
-
---
-
-WITH DeliveryDates AS ( SELECT CAST(GETDATE() AS DATE) AS delivery_date 
-UNION ALL SELECT DATEADD(DAY, 1, delivery_date) FROM DeliveryDates 
-WHERE delivery_date < DATEADD(DAY, 9, GETDATE()) ) 
-
 SELECT * FROM DeliveryDates;
 
-
---Customer Cumulative Spending
-SELECT 
-    c.customer_id,
-    c.first_name + ' ' + c.last_name AS customer_name,
-    SUM(oi.total_price) OVER(PARTITION BY c.customer_id ORDER BY o.order_date) AS cumulative_spent
-FROM customers c
-JOIN orders o ON c.customer_id = o.customer_id
-JOIN order_items oi ON o.order_id = oi.order_id;
-
-
---Orders with Previous and Next Order Dates
+-- 18️ Orders with Previous and Next Order Dates
 SELECT *
 FROM (
     SELECT 
@@ -100,350 +139,397 @@ FROM (
 WHERE previous_order IS NOT NULL
   AND next_order IS NOT NULL;
 
+-- 19️ Customer Cumulative Spending
+SELECT 
+    c.customer_id,
+    c.first_name + ' ' + c.last_name AS customer_name,
+    SUM(oi.total_price) OVER(PARTITION BY c.customer_id ORDER BY o.order_date) AS cumulative_spent
+FROM customers c
+JOIN orders o ON c.customer_id = o.customer_id
+JOIN order_items oi ON o.order_id = oi.order_id;
 
---
+-- 20️ Customer Order Count Ranking
+WITH CustomerOrders AS (
+    SELECT 
+        customer_id,
+        COUNT(order_id) AS total_orders
+    FROM orders
+    GROUP BY customer_id
+)
+SELECT *, RANK() OVER (ORDER BY total_orders DESC) AS order_rank
+FROM CustomerOrders;
 
 
 
+-- =========================================================================================
+--  MEDIUM LEVEL QUERIES (21–35)
+-- =========================================================================================
+
+-- 21️ Find the top 3 highest-revenue sellers
+SELECT TOP 3 s.seller_name, SUM(oi.total_price) AS total_revenue
+FROM sellers s
+JOIN orders o ON s.seller_id = o.seller_id
+JOIN order_items oi ON o.order_id = oi.order_id
+GROUP BY s.seller_name
+ORDER BY total_revenue DESC;
+
+-- 22️ Total revenue by category
+SELECT c.category_name, SUM(oi.total_price) AS total_sales
+FROM categories c
+JOIN products p ON c.category_id = p.category_id
+JOIN order_items oi ON p.product_id = oi.product_id
+GROUP BY c.category_name;
+
+-- 23️ Customers with total spend greater than $5000
+SELECT c.customer_id, c.first_name, SUM(oi.total_price) AS total_spent
+FROM customers c
+JOIN orders o ON c.customer_id = o.customer_id
+JOIN order_items oi ON o.order_id = oi.order_id
+GROUP BY c.customer_id, c.first_name
+HAVING SUM(oi.total_price) > 5000;
+
+-- 24️ Number of orders per month in current year
+SELECT DATENAME(MONTH, order_date) AS month, COUNT(*) AS total_orders
+FROM orders
+WHERE YEAR(order_date) = YEAR(GETDATE())
+GROUP BY DATENAME(MONTH, order_date)
+ORDER BY MIN(order_date);
+
+-- 25️ Sellers with products in multiple categories
+SELECT s.seller_name, COUNT(DISTINCT p.category_id) AS categories_sold
+FROM sellers s
+JOIN products p ON s.seller_id = p.seller_id
+GROUP BY s.seller_name
+HAVING COUNT(DISTINCT p.category_id) > 1;
+
+-- 26️ Average shipping delay (days)
+SELECT AVG(DATEDIFF(DAY, o.order_date, s.shipping_date)) AS avg_ship_days
+FROM orders o
+JOIN shipping s ON o.order_id = s.order_id;
+
+-- 27️ Total number of returned shipments per carrier
+SELECT carrier, COUNT(*) AS total_returns
+FROM shipping
+WHERE return_date IS NOT NULL
+GROUP BY carrier;
+
+-- 28️ Customers who bought from more than 3 sellers
+SELECT c.customer_id, c.first_name, COUNT(DISTINCT o.seller_id) AS unique_sellers
+FROM customers c
+JOIN orders o ON c.customer_id = o.customer_id
+GROUP BY c.customer_id, c.first_name
+HAVING COUNT(DISTINCT o.seller_id) > 3;
+
+-- 29️ Seller and their best-selling product
+SELECT s.seller_name, p.product_name, SUM(oi.quantity) AS total_sold
+FROM sellers s
+JOIN orders o ON s.seller_id = o.seller_id
+JOIN order_items oi ON o.order_id = oi.order_id
+JOIN products p ON oi.product_id = p.product_id
+GROUP BY s.seller_name, p.product_name;
+
+
+-- 30️ Customers active in the last 3 months 
+SELECT 
+    c.customer_id,
+    c.first_name,
+    COUNT(o.order_id) AS total_orders_last_3_months
+FROM customers c
+JOIN orders o 
+    ON c.customer_id = o.customer_id
+WHERE o.order_date >= DATEADD(MONTH, -3, GETDATE())
+GROUP BY c.customer_id, c.first_name
+ORDER BY total_orders_last_3_months DESC;
+
+
+-- 31️ Highest profit margin per category
+SELECT category_id, product_name, (price - cogs) AS profit_margin
+FROM products p
+WHERE (price - cogs) = (
+    SELECT MAX(price - cogs)
+    FROM products p2
+    WHERE p2.category_id = p.category_id
+);
+
+
+--32 Monthly revenue per seller using YEAR() and MONTH()
+SELECT 
+    s.seller_name, 
+    YEAR(o.order_date) AS order_year,
+    MONTH(o.order_date) AS order_month,
+    SUM(oi.total_price) AS monthly_revenue
+FROM sellers s
+JOIN orders o ON s.seller_id = o.seller_id
+JOIN order_items oi ON o.order_id = oi.order_id
+GROUP BY 
+    s.seller_name, 
+    YEAR(o.order_date),
+    MONTH(o.order_date)
+ORDER BY 
+    s.seller_name, 
+    order_year, 
+    order_month;
+
+
+-- 33️ Customers with pending payments
+SELECT DISTINCT c.customer_id, c.first_name, c.last_name
+FROM customers c
+JOIN orders o ON c.customer_id = o.customer_id
+JOIN payments p ON o.order_id = p.order_id
+WHERE p.payment_status <> 'Completed';
+
+-- 34️ Low-stock inventory (below 10)
+SELECT i.product_id, p.product_name, i.stock_remaining
+FROM inventory i
+JOIN products p ON i.product_id = p.product_id
+WHERE i.stock_remaining < 10;
+
+-- 35️ Average quantity sold per product
+SELECT p.product_name, AVG(oi.quantity) AS avg_qty_sold
+FROM products p
+JOIN order_items oi ON p.product_id = oi.product_id
+GROUP BY p.product_name;
 
 
 
+-- =========================================================================================
+--  ADVANCED / HARD LEVEL QUERIES (36–50)
+-- =========================================================================================
+
+
+--36 Monthly revenue per seller with ranking (using YEAR() and MONTH())
+SELECT 
+    s.seller_name,
+    YEAR(o.order_date) AS order_year,
+    MONTH(o.order_date) AS order_month,
+    SUM(oi.total_price) AS revenue,
+    RANK() OVER (
+        PARTITION BY YEAR(o.order_date), MONTH(o.order_date) 
+        ORDER BY SUM(oi.total_price) DESC
+    ) AS seller_rank
+FROM sellers s
+JOIN orders o ON s.seller_id = o.seller_id
+JOIN order_items oi ON o.order_id = oi.order_id
+GROUP BY 
+    s.seller_name,
+    YEAR(o.order_date),
+    MONTH(o.order_date)
+ORDER BY 
+    order_year, 
+    order_month, 
+    seller_rank;
+
+
+-- 37️ 3-Month Rolling Average Seller Revenue (using YEAR() and MONTH())
+-- 37️ 3-Month Rolling Average Seller Revenue (simpler version)
+WITH SellerMonthly AS (
+    SELECT 
+        s.seller_id,
+        YEAR(o.order_date) AS order_year,
+        MONTH(o.order_date) AS order_month,
+        SUM(oi.total_price) AS monthly_revenue
+    FROM sellers s
+    JOIN orders o ON s.seller_id = o.seller_id
+    JOIN order_items oi ON o.order_id = oi.order_id
+    GROUP BY s.seller_id, YEAR(o.order_date), MONTH(o.order_date)
+)
+SELECT 
+    seller_id,
+    order_year,
+    order_month,
+    monthly_revenue,
+    AVG(monthly_revenue) OVER (
+        PARTITION BY seller_id
+        ORDER BY (order_year * 12 + order_month)
+        ROWS BETWEEN 2 PRECEDING AND CURRENT ROW
+    ) AS rolling_avg
+FROM SellerMonthly
+ORDER BY seller_id, order_year, order_month;
 
 
 
+--38 Monthly revenue with previous month and percentage change (Month-over-Month Revenue Change (%)) 
+WITH MonthlyRev AS (
+    SELECT 
+        YEAR(o.order_date) AS order_year,
+        MONTH(o.order_date) AS order_month,
+        SUM(oi.total_price) AS total_revenue
+    FROM orders o
+    JOIN order_items oi ON o.order_id = oi.order_id
+    GROUP BY YEAR(o.order_date), MONTH(o.order_date)
+)
+SELECT 
+    order_year,
+    order_month,
+    total_revenue,
+    LAG(total_revenue) OVER (ORDER BY order_year, order_month) AS prev_month,
+    ROUND(
+        (total_revenue - LAG(total_revenue) OVER (ORDER BY order_year, order_month)) * 100.0 /
+        NULLIF(LAG(total_revenue) OVER (ORDER BY order_year, order_month), 0), 2
+    ) AS pct_change
+FROM MonthlyRev
+ORDER BY order_year, order_month;
+
+-- 39️ Sellers with Consecutive Revenue Declines
+-- Seller revenue trend: 3 consecutive decreasing months (simpler)
+-- Seller revenue trend: 3 consecutive decreasing months with seller name
+WITH SellerTrend AS (
+    SELECT 
+        s.seller_id,
+        YEAR(o.order_date) AS yr,
+        MONTH(o.order_date) AS mon,
+        SUM(oi.total_price) AS revenue
+    FROM sellers s
+    JOIN orders o ON s.seller_id = o.seller_id
+    JOIN order_items oi ON o.order_id = oi.order_id
+    GROUP BY s.seller_id, YEAR(o.order_date), MONTH(o.order_date)
+),
+TrendWithLag AS (
+    SELECT
+        st.seller_id,
+        (SELECT seller_name FROM sellers WHERE seller_id = st.seller_id) AS seller_name,
+        yr,
+        mon,
+        revenue,
+        LAG(revenue, 1) OVER (PARTITION BY seller_id ORDER BY yr, mon) AS prev_month,
+        LAG(revenue, 2) OVER (PARTITION BY seller_id ORDER BY yr, mon) AS two_months_ago
+    FROM SellerTrend st
+)
+SELECT *
+FROM TrendWithLag
+WHERE revenue < prev_month
+  AND prev_month < two_months_ago
+ORDER BY seller_id, yr, mon;
+
+-- 40️ Forecast Next Restock Date per Product
+WITH RestockHistory AS (
+    SELECT 
+        product_id,
+        restock_date,
+        LAG(restock_date) OVER (PARTITION BY product_id ORDER BY restock_date) AS prev_date
+    FROM inventory
+)
+SELECT 
+    product_id,
+    AVG(DATEDIFF(DAY, prev_date, restock_date)) AS avg_interval_days,
+    DATEADD(DAY, AVG(DATEDIFF(DAY, prev_date, restock_date)), MAX(restock_date)) AS next_estimated_restock
+FROM RestockHistory
+WHERE prev_date IS NOT NULL
+GROUP BY product_id;
+
+-- 41️ Seller Performance Tiers Using Percentiles
+WITH SellerRevenue AS (
+    SELECT 
+        s.seller_id, 
+        SUM(oi.total_price) AS total_revenue
+    FROM sellers s
+    JOIN orders o ON s.seller_id = o.seller_id
+    JOIN order_items oi ON o.order_id = oi.order_id
+    GROUP BY s.seller_id
+),
+SellerRank AS (
+    SELECT 
+        seller_id,
+        total_revenue,
+        NTILE(10) OVER (ORDER BY total_revenue DESC) AS decile_rank
+    FROM SellerRevenue
+)
+SELECT 
+    seller_id,
+    total_revenue,
+    CASE 
+        WHEN decile_rank = 1 THEN 'Top 10%'
+        WHEN decile_rank <= 5 THEN 'Mid Performer'
+        ELSE 'Low Performer'
+    END AS performance_tier
+FROM SellerRank
+ORDER BY total_revenue DESC;
 
 
+-- 42️ Customer Lifetime Value (LTV)
+SELECT 
+    c.customer_id,
+    c.first_name + ' ' + c.last_name AS customer_name,
+    SUM(oi.total_price) AS lifetime_value
+FROM customers c
+JOIN orders o ON c.customer_id = o.customer_id
+JOIN order_items oi ON o.order_id = oi.order_id
+GROUP BY c.customer_id, c.first_name, c.last_name;
 
+-- 43️ Detect Longest Shipping Delays
+SELECT TOP 10 
+    o.order_id,
+    DATEDIFF(DAY, o.order_date, s.shipping_date) AS delay_days,
+    s.carrier
+FROM orders o
+JOIN shipping s ON o.order_id = s.order_id
+ORDER BY delay_days DESC;
 
-SELECT p.product_name, c.category_name
+-- 44️ Rank Top 3 Products per Category by Profit
+SELECT 
+    c.category_name,
+    p.product_name,
+    (p.price - p.cogs) AS profit_margin,
+    RANK() OVER (PARTITION BY c.category_name ORDER BY (p.price - p.cogs) DESC) AS rank_in_category
 FROM products p
 JOIN categories c ON p.category_id = c.category_id;
 
---cte Number of Products per Category
-WITH ProductCounts AS (
-    SELECT 
-        c.category_id,
-        c.category_name,
-        COUNT(p.product_id) AS total_products
-    FROM categories c
-    LEFT JOIN products p ON c.category_id = p.category_id
-    GROUP BY c.category_id, c.category_name
+-- 45️ Country-wise Seller Market Share
+WITH TotalCountryRevenue AS (
+    SELECT s.country, SUM(oi.total_price) AS total_rev
+    FROM sellers s
+    JOIN orders o ON s.seller_id = o.seller_id
+    JOIN order_items oi ON o.order_id = oi.order_id
+    GROUP BY s.country
 )
-SELECT * FROM ProductCounts WHERE total_products > 5
+SELECT 
+    s.country,
+    s.seller_name,
+    SUM(oi.total_price) AS seller_revenue,
+    ROUND(SUM(oi.total_price) * 100.0 / tc.total_rev, 2) AS market_share_pct
+FROM sellers s
+JOIN orders o ON s.seller_id = o.seller_id
+JOIN order_items oi ON o.order_id = oi.order_id
+JOIN TotalCountryRevenue tc ON s.country = tc.country
+GROUP BY s.country, s.seller_name, tc.total_rev
+ORDER BY s.country, market_share_pct DESC;
 
---CTE: Categories with No Products
-WITH EmptyCategories AS (
+GO
+
+
+--Customer Cumulative Spending Change
+WITH CustomerDaily AS (
     SELECT 
-        c.category_id,
-        c.category_name
-    FROM categories c
-    LEFT JOIN products p ON c.category_id = p.category_id
-    WHERE p.product_id IS NULL
+        c.customer_id,
+        o.order_date,
+        SUM(oi.total_price) AS order_total
+    FROM customers c
+    JOIN orders o ON c.customer_id = o.customer_id
+    JOIN order_items oi ON o.order_id = oi.order_id
+    GROUP BY c.customer_id, o.order_date
+),
+CustomerCumulative AS (
+    SELECT
+        customer_id,
+        order_date,
+        SUM(order_total) OVER (PARTITION BY customer_id ORDER BY order_date) AS cumulative_spent
+    FROM CustomerDaily
+),
+CustomerWithPrev AS (
+    SELECT
+        customer_id,
+        order_date,
+        cumulative_spent,
+        LAG(cumulative_spent) OVER (PARTITION BY customer_id ORDER BY order_date) AS prev_cumulative
+    FROM CustomerCumulative
 )
-SELECT * FROM EmptyCategories;
-
---View: Categories with Total Stock from Products
-CREATE VIEW vw_CategoryStockSummary AS
-SELECT 
-    c.category_id,
-    c.category_name,
-    SUM(i.stock_remaining) AS total_stock
-FROM categories c
-JOIN products p ON c.category_id = p.category_id
-JOIN inventory i ON p.product_id = i.product_id
-GROUP BY c.category_id, c.category_name;
-
-SELECT * FROM vw_CategoryStockSummary WHERE total_stock > 100;
-
-
-
---Table-Valued Function: Category Details with Product Count
-CREATE FUNCTION dbo.fn_GetCategoryDetails(@min_product_count INT)
-RETURNS TABLE
-AS
-RETURN (
-    SELECT 
-        c.category_id,
-        c.category_name,
-        COUNT(p.product_id) AS product_count
-    FROM categories c
-    LEFT JOIN products p ON c.category_id = p.category_id
-    GROUP BY c.category_id, c.category_name
-    HAVING COUNT(p.product_id) >= @min_product_count
-);
-
-SELECT * FROM dbo.fn_GetCategoryDetails(3);
-
-
---Scalar Function: Get Category Name by ID
-CREATE FUNCTION dbo.fn_GetCategoryName (@category_id INT)
-RETURNS VARCHAR(100)
-AS
-BEGIN
-    DECLARE @name VARCHAR(100)
-    SELECT @name = category_name FROM categories WHERE category_id = @category_id
-    RETURN @name
-END;
-
-SELECT dbo.fn_GetCategoryName(2) AS CategoryName;
-
-
-
-
-
-
-
-select c.category_name , count(p.product_id) as product_count from categories as c 
-join products as p 
-on p.category_id=c.category_id
-group by c.category_name
-
-
-select c.category_name, 
-	count(p.product_id) as product_count, 
-	rank() over(order by count(p.product_id) desc) as highest_rank
-	from categories as c 
-	join products as p 
-	on p.category_id=c.category_id
-	group by c.category_name
-
-
---------------------------------
-/**** Advanced sql queries***/
---------------------------------
-
-/**--1. top selling products 
---query top 10 products by total sales value
-
---first need to find total quantity sold and total sales value
-**/
-
-select top 10 oi.product_id, p.product_name, sum(oi.total_price) as total_sale, count(o.order_id) as total_orders
-from orders o join order_items oi on oi.order_id=o.order_id
-join products as p on p.product_id = oi.product_id
-group by oi.product_id, p.product_name
-order by total_sale desc 
-
-
-/**--2. revenue by category
---Calculate total revenue generated by each product category.
-
----need to find percentage contribution of each category to total revenue
----i got error:---  arthmetic error so convert to bigint and add sum function and cast as decimal and apply percentage to it
-**/
-SELECT 
-    p.category_id,
-    c.category_name,
-    SUM(CAST(oi.total_price AS BIGINT)) AS total_sale,
-    CAST(SUM(CAST(oi.total_price AS BIGINT)) AS DECIMAL(38,2)) /
-    CAST((SELECT SUM(CAST(total_price AS BIGINT)) FROM order_items) AS DECIMAL(38,2)) * 100 AS ratio
-FROM order_items oi
-JOIN products AS p ON p.product_id = oi.product_id
-LEFT JOIN categories AS c ON c.category_id = p.category_id
-GROUP BY p.category_id, c.category_name
-ORDER BY total_sale DESC;
-
-
-/**--3. Average Order value
---computet the average order value for each customer
-
---include only customers with more than 2 orders
-**/
-select c.customer_id,
-		c.first_name +''+ c.last_name as full_name,
-		sum(total_price) /count(o.order_id)  as AVG_value,
-		count(o.order_id) as total_orders
-from orders as o join customers as c
-on c.customer_id=o.customer_id
-join order_items as oi on oi.order_id=o.order_id
-group by c.customer_id, c.first_name +''+ c.last_name
-having count(o.order_id) > 2
-
-
-/**--4. Monthly sales trend
---querymonthly total sales over the past time
-
---select last one year data and select their total sales and their previous month sales by using lag() function
---convert total sales as big-int to avoid below error
---i got error:-- Arithmetic overflow error converting expression to data type int.
-**/
-
-SELECT 
-    year,
-    month,
-    total_sales AS current_month_sale,
-    LAG(total_sales, 1) OVER (ORDER BY year, month) AS last_month_sale
-FROM (
-    SELECT 
-        YEAR(o.order_date) AS year,
-        MONTH(o.order_date) AS month,
-        SUM(CAST(oi.total_price AS BIGINT)) AS total_sales
-    FROM orders AS o
-    JOIN order_items AS oi ON o.order_id = oi.order_id 
-    WHERE o.order_date >= DATEADD(YEAR, -1, GETDATE())
-    GROUP BY 
-        YEAR(o.order_date),
-        MONTH(o.order_date)
-) AS monthly_sales
-ORDER BY year, month;
-
-
-/**--5. Customers with no purchase
---find the customers who have registered but never placed an order
-**/
-
-/**--approach-1   list the customers details and the time since their registration
-**/
-select * from customers
-where customer_id not in (
-select distinct(customer_id) from orders
-)
-
-/**--another approach-2
---select * from customers as c left join orders as o on c.customer_id=o.customer_id 
---where o.customer_id is null
-**/
-
-/**--6. Least selling category by state
-
---Identify the best selling product category fro each state
---include total sales for that category within each state
-**/
-with ranking_content as(
-select c.state,
-ct.category_name,
-sum(oi.total_price) as total_sales,
-rank() over(partition by ct.category_name order by sum(oi.total_price) desc) as rank
-from orders as o join customers as c on c.customer_id=o.customer_id
-join order_items as oi on oi.order_id=o.order_id
-join products as p on p.product_id=o.product_id
-join categories as ct on ct.category_id=p.category_id
-group by c.state, ct.category_name
---order by ct.category_name, sum(oi.total_price) 
-
-)
-
-select * from ranking_content where rank=1
-
-
-/**7. customer life time value
---Calculate total value of orders placed by each customer over their lifetime
-
---rank customers based on customer lifetime value
-**/
-
-select c.customer_id,
-c.first_name + '' + c.last_name as full_name,
-sum(oi.total_price) as CLTV,
-DENSE_RANK() over(order by sum(oi.total_price)) as cx_ranking
-from orders as o join customers as c on o.customer_id=c.customer_id
-join order_items as oi on oi.order_id=o.order_id
-group by c.customer_id, c.first_name + '' + c.last_name
-
-
-/** --8. Inventory stock Alerts
-Query products with stock levels below a certain threshold (e.g less than 10 units).
-
---Include last restock_date and warehouse information.
-**/
-
-
-select  i.inventory_id,
-		i.stock_remaining as current_stock_left,
-		product_name ,
-		i.restock_date as last_stock_date
-		from inventory as i
-join products as p on p.product_id=i.product_id
-where stock_remaining < 10
-
-
-/**9. Shipping delays 
-Identify orders where the shipping date is later than 7 days or 5 days after the order date
-
---include customer, order details and delivery provider
-**/
-
--- Shipping delays: orders shipped more than 5 days or 7 days after being placed
-
-SELECT 
-    o.order_id,
-    o.order_date,
-    s.shipping_date,
-    DATEDIFF(DAY, o.order_date, s.shipping_date) AS days_to_ship,
-    o.customer_id,
-    c.first_name,
-    c.last_name,
-	s.delivery_status
-FROM orders AS o
-JOIN customers AS c ON o.customer_id = c.customer_id
-JOIN shipping AS s ON o.order_id = s.order_id
-WHERE DATEDIFF(DAY, o.order_date, s.shipping_date) > 5 OR DATEDIFF(DAY, o.order_date, s.shipping_date) > 7
-
-
-/**10. Payment success rate 
---calculate the percentage of successful payments across all orders
-
---include breakdowns by payment status(eg:-- failed pending)
-**/
-
-SELECT 
-    p.payment_status,
-    COUNT(*) AS total_count,
-    CAST(COUNT(*) AS FLOAT) / (SELECT COUNT(*) FROM payments) * 100 AS ratio
-FROM orders AS o
-JOIN payments AS p ON p.order_id = o.order_id
-GROUP BY p.payment_status;
-
-
-
-/** 11. Top performing sellers
--- find the top 5 sellers based on total sales values.
-
---include both failed orders and successful orders and display the percentage of successful orders
-**/
-
-select * from orders as o 
-join sellers as s
-on s.seller_id=o.seller_id
-join order_items as oi
-on oi.order_id=o.order_id
-
---Top 3 Categories by Total Inventory
-SELECT 
-    c.category_id,
-    c.category_name,
-    SUM(i.stock_remaining) AS TotalStock
-FROM categories c
-JOIN products p ON c.category_id = p.category_id
-JOIN inventory i ON p.product_id = i.product_id
-GROUP BY c.category_id, c.category_name
-ORDER BY TotalStock DESC
-OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY;  -- Top 3 categories
-
-
-CREATE FUNCTION dbo.fn_InventoryStatusByCategory (@category_id INT)
-RETURNS TABLE
-AS
-RETURN (
-    SELECT 
-        p.product_id,
-        p.product_name,
-        i.stock_remaining,
-        CASE 
-            WHEN i.stock_remaining = 0 THEN 'Out of Stock'
-            WHEN i.stock_remaining < 10 THEN 'Low Stock'
-            ELSE 'In Stock'
-        END AS StockStatus
-    FROM Products p
-    JOIN Inventory i ON p.product_id = i.product_id
-    WHERE p.category_id = @category_id
-);
-
-
---select * from inventory i join products p on i.product_id=p.product_id where p.category_id=1
-
-
-
-select * from [dbo].[fn_InventoryStatusByCategory](1)
-
-
+SELECT
+    customer_id,
+    order_date,
+    cumulative_spent,
+    prev_cumulative,
+    ROUND(
+        (cumulative_spent - prev_cumulative) * 100.0 / NULLIF(prev_cumulative, 0), 2
+    ) AS pct_change_cumulative
+FROM CustomerWithPrev
+ORDER BY customer_id, order_date;
